@@ -134,18 +134,77 @@ jobs:
           echo "=== Module Status ==="
           ./vendor/bin/drush pm:list --type=module --format=table | grep -E "(Name|name_pronunciation)" || echo "Module check complete"
 
-      # Test Environment Access for PR Reviewers
-      - name: Start PHP web server
+      - name: Save Drupal installation for test environment
         if: github.event_name == 'pull_request'
         run: |
-          cd drupal/web
+          # Create a tarball of the Drupal installation to share with test-environment job
+          tar -czf /tmp/drupal-install.tar.gz drupal/
+
+      - name: Upload Drupal installation artifact
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: drupal-installation
+          path: /tmp/drupal-install.tar.gz
+          retention-days: 1
+
+  # Separate job for test environment - runs in parallel after tests pass
+  # This job keeps running to maintain the environment, but doesn't block PR merging
+  test-environment:
+    needs: drupal-test
+    runs-on: ubuntu-latest
+    name: Live Test Environment
+    if: github.event_name == 'pull_request'
+
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: drupal
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: gd, pdo_mysql, opcache, mbstring, xml, json
+          coverage: none
+
+      - name: Download Drupal installation artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: drupal-installation
+          path: /tmp/
+
+      - name: Extract Drupal installation
+        run: |
+          cd ~
+          tar -xzf /tmp/drupal-install.tar.gz
+          echo "✓ Drupal installation restored"
+
+      # Test Environment Access for PR Reviewers
+      - name: Start PHP web server
+        run: |
+          cd ~/drupal/web
           php -S 0.0.0.0:8080 .ht.router.php > /tmp/server.log 2>&1 &
           echo $! > /tmp/server.pid
           sleep 3
           echo "✓ Web server started on port 8080"
 
       - name: Install and setup cloudflared tunnel
-        if: github.event_name == 'pull_request'
         run: |
           # Download cloudflared
           wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
@@ -192,7 +251,7 @@ jobs:
           echo "✓ Tunnel created successfully: $TUNNEL_URL"
 
       - name: Output test environment URL to summary
-        if: github.event_name == 'pull_request' && env.TUNNEL_URL != ''
+        if: env.TUNNEL_URL != ''
         run: |
           echo "## 🧪 Test Environment Ready!" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -223,7 +282,7 @@ jobs:
           echo "*Environment created at: $(date -u +"%Y-%m-%dT%H:%M:%SZ")*" >> $GITHUB_STEP_SUMMARY
 
       - name: Post PR comment with access details
-        if: github.event_name == 'pull_request' && env.TUNNEL_URL != ''
+        if: env.TUNNEL_URL != ''
         continue-on-error: true
         uses: actions/github-script@v7
         with:
@@ -260,6 +319,7 @@ jobs:
             - This is a temporary test environment
             - All data will be lost when the environment closes
             - The URL is publicly accessible but temporary
+            - ℹ️ The main CI check has already passed - this environment runs separately
 
             ---
 
@@ -273,10 +333,13 @@ jobs:
             });
 
       - name: Keep environment alive for reviewers
-        if: github.event_name == 'pull_request' && env.TUNNEL_URL != ''
+        if: env.TUNNEL_URL != ''
         run: |
           echo "🌐 Test environment is now accessible at: $TUNNEL_URL"
           echo "👤 Login credentials - Username: admin | Password: admin"
+          echo ""
+          echo "✅ Note: The main CI tests have already passed!"
+          echo "   This job is running separately to provide a test environment."
           echo ""
           echo "⏱️  Keeping environment alive for 30 minutes..."
           echo "   Reviewers can access and test the module during this time."
@@ -300,3 +363,4 @@ jobs:
           if [ -f /tmp/server.pid ]; then
             kill $(cat /tmp/server.pid) 2>/dev/null || true
           fi
+
