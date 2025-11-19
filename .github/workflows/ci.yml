@@ -11,6 +11,7 @@ on:
 jobs:
   drupal-test:
     runs-on: ubuntu-latest
+    name: PHP 8.3 - Drupal 10.5
 
     services:
       mysql:
@@ -26,13 +27,6 @@ jobs:
           --health-timeout=5s
           --health-retries=3
 
-    strategy:
-      matrix:
-        php-version: ['8.1', '8.2']
-        drupal-version: ['10.1.x', '10.2.x']
-
-    name: PHP ${{ matrix.php-version }} - Drupal ${{ matrix.drupal-version }}
-
     steps:
       - name: Checkout module code
         uses: actions/checkout@v4
@@ -42,7 +36,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ matrix.php-version }}
+          php-version: '8.3'
           extensions: gd, pdo_mysql, opcache, mbstring, xml, json
           coverage: none
           tools: composer:v2
@@ -61,10 +55,10 @@ jobs:
 
       - name: Create Drupal project
         run: |
-          composer create-project drupal/recommended-project:${{ matrix.drupal-version }} drupal --no-interaction
+          composer create-project drupal/recommended-project:10.5.x drupal --no-interaction
           cd drupal
-          # Add development dependencies
-          composer require --dev drupal/core-dev:${{ matrix.drupal-version }} --no-interaction
+          # Add development dependencies with all dependencies flag
+          composer require --dev drupal/core-dev:10.5.x -W --no-interaction
 
       - name: Install module
         run: |
