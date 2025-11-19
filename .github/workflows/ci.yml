@@ -214,7 +214,9 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### ⏱️ Environment Availability" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "This test environment will remain available for **2 hours** from now." >> $GITHUB_STEP_SUMMARY
+          echo "This test environment will remain available for **30 minutes** from now." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "💡 **Need more time?** Re-run the workflow from the Actions tab to get another 30 minutes." >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "---" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -249,7 +251,9 @@ jobs:
 
             ### ⏱️ Environment Availability
 
-            This test environment will remain available for **2 hours** from now.
+            This test environment will remain available for **30 minutes** from now.
+
+            💡 **Need more time?** Re-run the workflow from the Actions tab to get another 30 minutes.
 
             ### ⚠️ Note
 
@@ -274,16 +278,19 @@ jobs:
           echo "🌐 Test environment is now accessible at: $TUNNEL_URL"
           echo "👤 Login credentials - Username: admin | Password: admin"
           echo ""
-          echo "⏱️  Keeping environment alive for 2 hours..."
+          echo "⏱️  Keeping environment alive for 30 minutes..."
           echo "   Reviewers can access and test the module during this time."
           echo ""
+          echo "💡 Tip: This is enough time for a quick review. If you need more time,"
+          echo "   you can re-run the workflow from the Actions tab."
+          echo ""
 
-          # Keep the environment alive for 2 hours (7200 seconds)
-          # This allows PR reviewers ample time to test
-          sleep 7200
+          # Keep the environment alive for 30 minutes (1800 seconds)
+          # This balances reviewer access time with CI resource usage
+          sleep 1800
 
           echo ""
-          echo "⏰ 2-hour review period has ended."
+          echo "⏰ 30-minute review period has ended."
           echo "   Shutting down test environment..."
 
           # Cleanup
