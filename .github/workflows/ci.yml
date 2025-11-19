@@ -13,6 +13,11 @@ jobs:
     runs-on: ubuntu-latest
     name: PHP 8.3 - Drupal 10.5
 
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+
     services:
       mysql:
         image: mysql:8.0
@@ -128,3 +133,260 @@ jobs:
           cd drupal
           echo "=== Module Status ==="
           ./vendor/bin/drush pm:list --type=module --format=table | grep -E "(Name|name_pronunciation)" || echo "Module check complete"
+
+      - name: Save Drupal installation for test environment
+        if: github.event_name == 'pull_request'
+        run: |
+          # Export the database
+          cd drupal
+          ./vendor/bin/drush sql-dump --result-file=/tmp/drupal-db.sql
+          echo "✓ Database exported to /tmp/drupal-db.sql"
+
+          # Create a tarball of the Drupal installation to share with test-environment job
+          cd ..
+          tar -czf /tmp/drupal-install.tar.gz drupal/
+          echo "✓ Drupal files archived"
+
+      - name: Upload Drupal installation artifact
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: drupal-installation
+          path: |
+            /tmp/drupal-install.tar.gz
+            /tmp/drupal-db.sql
+          retention-days: 1
+
+  # Separate job for test environment - runs in parallel after tests pass
+  # This job keeps running to maintain the environment, but doesn't block PR merging
+  test-environment:
+    needs: drupal-test
+    runs-on: ubuntu-latest
+    name: Live Test Environment
+    if: github.event_name == 'pull_request'
+
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: drupal
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: gd, pdo_mysql, opcache, mbstring, xml, json
+          coverage: none
+
+      - name: Download Drupal installation artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: drupal-installation
+          path: /tmp/
+
+      - name: Extract Drupal installation
+        run: |
+          cd ~
+          tar -xzf /tmp/drupal-install.tar.gz
+          echo "✓ Drupal installation restored"
+
+      - name: Import database
+        run: |
+          # Wait for MySQL to be ready
+          echo "Waiting for MySQL to be ready..."
+          for i in {1..30}; do
+            if mysqladmin ping -h127.0.0.1 -uroot -proot --silent; then
+              echo "✓ MySQL is ready"
+              break
+            fi
+            sleep 1
+          done
+
+          # Import the database
+          echo "Importing database..."
+          mysql -h127.0.0.1 -uroot -proot drupal < /tmp/drupal-db.sql
+          echo "✓ Database imported successfully"
+
+      # Test Environment Access for PR Reviewers
+      - name: Start PHP web server
+        run: |
+          cd ~/drupal/web
+          php -S 0.0.0.0:8080 .ht.router.php > /tmp/server.log 2>&1 &
+          echo $! > /tmp/server.pid
+          sleep 3
+          echo "✓ Web server started on port 8080"
+
+      - name: Install and setup cloudflared tunnel
+        run: |
+          # Download cloudflared
+          wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+          sudo dpkg -i cloudflared-linux-amd64.deb
+
+          # Start tunnel in background
+          cloudflared tunnel --url http://localhost:8080 > /tmp/tunnel.log 2>&1 &
+          echo $! > /tmp/tunnel.pid
+
+          # Wait for tunnel URL to be generated
+          echo "Waiting for tunnel URL..."
+          TUNNEL_URL=""
+          for i in {1..60}; do
+            if [ -f /tmp/tunnel.log ]; then
+              # Try multiple patterns to extract the URL
+              TUNNEL_URL=$(grep -oE 'https://[a-zA-Z0-9-]+\.trycloudflare\.com' /tmp/tunnel.log | head -1)
+
+              if [ ! -z "$TUNNEL_URL" ]; then
+                echo "✓ Tunnel URL found: $TUNNEL_URL"
+                break
+              fi
+            fi
+
+            # Show progress every 10 seconds
+            if [ $((i % 10)) -eq 0 ]; then
+              echo "Still waiting... ($i seconds elapsed)"
+              echo "Current tunnel log contents:"
+              cat /tmp/tunnel.log 2>/dev/null || echo "Log file not yet created"
+            fi
+
+            sleep 1
+          done
+
+          # Check if we got a URL
+          if [ -z "$TUNNEL_URL" ]; then
+            echo "❌ Failed to get tunnel URL after 60 seconds"
+            echo "Final tunnel log contents:"
+            cat /tmp/tunnel.log
+            exit 1
+          fi
+
+          # Export the URL for subsequent steps
+          echo "TUNNEL_URL=$TUNNEL_URL" >> $GITHUB_ENV
+          echo "✓ Tunnel created successfully: $TUNNEL_URL"
+
+      - name: Output test environment URL to summary
+        if: env.TUNNEL_URL != ''
+        run: |
+          echo "## 🧪 Test Environment Ready!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔗 Access Details" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**URL:** $TUNNEL_URL" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Admin Login:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Username: \`admin\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Password: \`admin\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📝 How to Test" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "1. Click the URL above to access the test site" >> $GITHUB_STEP_SUMMARY
+          echo "2. Log in with the admin credentials" >> $GITHUB_STEP_SUMMARY
+          echo "3. Navigate to **Structure > Content types**" >> $GITHUB_STEP_SUMMARY
+          echo "4. Add the Name Pronunciation field to a content type" >> $GITHUB_STEP_SUMMARY
+          echo "5. Create content and test the audio recording functionality" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### ⏱️ Environment Availability" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "This test environment will remain available for **30 minutes** from now." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "💡 **Need more time?** Re-run the workflow from the Actions tab to get another 30 minutes." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "*Environment created at: $(date -u +"%Y-%m-%dT%H:%M:%SZ")*" >> $GITHUB_STEP_SUMMARY
+
+      - name: Post PR comment with access details
+        if: env.TUNNEL_URL != ''
+        continue-on-error: true
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const tunnelUrl = process.env.TUNNEL_URL;
+            const body = `## 🧪 Test Environment Ready!
+
+            Your PR has been deployed to a test environment. You can now test the **Name Pronunciation** module functionality directly in a live Drupal site.
+
+            ### 🔗 Access Details
+
+            **URL:** ${tunnelUrl}
+
+            **Admin Login:**
+            - Username: \`admin\`
+            - Password: \`admin\`
+
+            ### 📝 How to Test
+
+            1. Click the URL above to access the test site
+            2. Log in with the admin credentials
+            3. Navigate to **Structure > Content types**
+            4. Add the Name Pronunciation field to a content type
+            5. Create content and test the audio recording functionality
+
+            ### ⏱️ Environment Availability
+
+            This test environment will remain available for **30 minutes** from now.
+
+            💡 **Need more time?** Re-run the workflow from the Actions tab to get another 30 minutes.
+
+            ### ⚠️ Note
+
+            - This is a temporary test environment
+            - All data will be lost when the environment closes
+            - The URL is publicly accessible but temporary
+            - ℹ️ The main CI check has already passed - this environment runs separately
+
+            ---
+
+            *Environment created at: ${new Date().toISOString()}*`;
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+
+      - name: Keep environment alive for reviewers
+        if: env.TUNNEL_URL != ''
+        run: |
+          echo "🌐 Test environment is now accessible at: $TUNNEL_URL"
+          echo "👤 Login credentials - Username: admin | Password: admin"
+          echo ""
+          echo "✅ Note: The main CI tests have already passed!"
+          echo "   This job is running separately to provide a test environment."
+          echo ""
+          echo "⏱️  Keeping environment alive for 30 minutes..."
+          echo "   Reviewers can access and test the module during this time."
+          echo ""
+          echo "💡 Tip: This is enough time for a quick review. If you need more time,"
+          echo "   you can re-run the workflow from the Actions tab."
+          echo ""
+
+          # Keep the environment alive for 30 minutes (1800 seconds)
+          # This balances reviewer access time with CI resource usage
+          sleep 1800
+
+          echo ""
+          echo "⏰ 30-minute review period has ended."
+          echo "   Shutting down test environment..."
+
+          # Cleanup
+          if [ -f /tmp/tunnel.pid ]; then
+            kill $(cat /tmp/tunnel.pid) 2>/dev/null || true
+          fi
+          if [ -f /tmp/server.pid ]; then
+            kill $(cat /tmp/server.pid) 2>/dev/null || true
+          fi
+
