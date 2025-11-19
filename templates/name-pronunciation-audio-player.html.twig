@@ -1,0 +1,26 @@
+{#
+/**
+ * @file
+ * Template for the name pronunciation audio player.
+ *
+ * Available variables:
+ * - audio_url: URL to the audio file.
+ * - file_mime_type: MIME type of the audio file.
+ * - button_text: Text to display with the play button.
+ * - description: Optional description of the pronunciation.
+ */
+#}
+<div class="name-pronunciation-player" data-initialized="false">
+  <button class="pronunciation-play-button" type="button" aria-label="Play pronunciation">
+    <span class="visually-hidden">{{ button_text|default('Play pronunciation') }}</span>
+  </button>
+
+  {% if description %}
+    <span class="pronunciation-description">{{ description }}</span>
+  {% endif %}
+
+  <audio preload="metadata">
+    <source src="{{ audio_url }}" type="{{ file_mime_type }}">
+    {{ 'Your browser does not support the audio element.'|t }}
+  </audio>
+</div>

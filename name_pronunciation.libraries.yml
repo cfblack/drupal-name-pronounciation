@@ -1,0 +1,20 @@
+recorder:
+  version: 1.x
+  js:
+    js/recorder.js: {}
+  css:
+    theme:
+      css/pronunciation.css: {}
+  dependencies:
+    - core/drupal
+    - core/drupalSettings
+
+player:
+  version: 1.x
+  js:
+    js/player.js: {}
+  css:
+    theme:
+      css/pronunciation.css: {}
+  dependencies:
+    - core/drupal

@@ -1,0 +1,20 @@
+<?php
+
+/**
+ * @file
+ * Primary module hooks for Name Pronunciation module.
+ */
+
+/**
+ * Implements hook_theme().
+ */
+function name_pronunciation_theme($existing, $type, $theme, $path) {
+  return [
+    'name_pronunciation_audio_player' => [
+      'variables' => [
+        'audio_url' => NULL,
+        'file_mime_type' => NULL,
+      ],
+    ],
+  ];
+}

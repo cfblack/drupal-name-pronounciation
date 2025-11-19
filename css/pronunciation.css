@@ -1,0 +1,158 @@
+/**
+ * @file
+ * Styles for name pronunciation recorder and player.
+ */
+
+/* Recorder styles */
+.name-pronunciation-recorder {
+  padding: 1em;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+  margin-top: 0.5em;
+}
+
+.recorder-controls {
+  display: flex;
+  gap: 0.5em;
+  margin-bottom: 1em;
+}
+
+.recorder-button {
+  padding: 0.5em 1em;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: background-color 0.2s;
+}
+
+.recorder-record {
+  background-color: #0073aa;
+  color: white;
+}
+
+.recorder-record:hover {
+  background-color: #005177;
+}
+
+.recorder-stop {
+  background-color: #dc3232;
+  color: white;
+}
+
+.recorder-stop:hover {
+  background-color: #a00;
+}
+
+.recorder-status {
+  padding: 0.5em;
+  margin-bottom: 1em;
+  background-color: #fff;
+  border-radius: 4px;
+  min-height: 2em;
+}
+
+.status-message {
+  font-weight: bold;
+}
+
+.recorder-preview {
+  margin-top: 1em;
+}
+
+.recorder-preview audio {
+  width: 100%;
+  max-width: 400px;
+}
+
+.current-pronunciation {
+  margin-top: 1em;
+  padding: 1em;
+  background-color: #fff;
+  border-radius: 4px;
+}
+
+/* Player styles */
+.name-pronunciation-player {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.pronunciation-play-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 2px solid #0073aa;
+  border-radius: 50%;
+  background-color: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.pronunciation-play-button:hover {
+  background-color: #0073aa;
+  transform: scale(1.05);
+}
+
+.pronunciation-play-button:hover::before {
+  border-left-color: #fff;
+}
+
+/* Speaker/play icon using CSS */
+.pronunciation-play-button::before {
+  content: '';
+  display: block;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 8px 0 8px 12px;
+  border-color: transparent transparent transparent #0073aa;
+  margin-left: 3px;
+  transition: border-left-color 0.2s;
+}
+
+.pronunciation-play-button.playing::before {
+  border-style: solid;
+  border-width: 0 5px;
+  border-color: #0073aa;
+  width: 3px;
+  height: 16px;
+  margin-left: 0;
+}
+
+.pronunciation-play-button.playing:hover::before {
+  border-color: #fff;
+}
+
+.pronunciation-play-button:disabled,
+.pronunciation-play-button.error {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: #ccc;
+}
+
+.pronunciation-play-button:disabled::before,
+.pronunciation-play-button.error::before {
+  border-left-color: #ccc;
+}
+
+.pronunciation-description {
+  font-size: 0.9em;
+  color: #666;
+  font-style: italic;
+}
+
+/* Hide the actual audio element */
+.name-pronunciation-player audio {
+  display: none;
+}
+
+/* Utility class */
+.hidden {
+  display: none !important;
+}

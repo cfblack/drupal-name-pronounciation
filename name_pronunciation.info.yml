@@ -1,0 +1,5 @@
+name: 'Name Pronunciation'
+type: module
+description: 'Provides a field type for recording and playing audio pronunciations of names.'
+package: Field types
+core_version_requirement: ^10 || ^11
