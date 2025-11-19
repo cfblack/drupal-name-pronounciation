@@ -152,17 +152,39 @@ jobs:
 
           # Wait for tunnel URL to be generated
           echo "Waiting for tunnel URL..."
-          for i in {1..30}; do
-            if grep -q "https://" /tmp/tunnel.log; then
-              break
+          TUNNEL_URL=""
+          for i in {1..60}; do
+            if [ -f /tmp/tunnel.log ]; then
+              # Try multiple patterns to extract the URL
+              TUNNEL_URL=$(grep -oE 'https://[a-zA-Z0-9-]+\.trycloudflare\.com' /tmp/tunnel.log | head -1)
+
+              if [ ! -z "$TUNNEL_URL" ]; then
+                echo "✓ Tunnel URL found: $TUNNEL_URL"
+                break
+              fi
             fi
+
+            # Show progress every 10 seconds
+            if [ $((i % 10)) -eq 0 ]; then
+              echo "Still waiting... ($i seconds elapsed)"
+              echo "Current tunnel log contents:"
+              cat /tmp/tunnel.log 2>/dev/null || echo "Log file not yet created"
+            fi
+
             sleep 1
           done
 
-          # Extract and display the URL
-          TUNNEL_URL=$(grep -oP 'https://[^\s]+\.trycloudflare\.com' /tmp/tunnel.log | head -1)
+          # Check if we got a URL
+          if [ -z "$TUNNEL_URL" ]; then
+            echo "❌ Failed to get tunnel URL after 60 seconds"
+            echo "Final tunnel log contents:"
+            cat /tmp/tunnel.log
+            exit 1
+          fi
+
+          # Export the URL for subsequent steps
           echo "TUNNEL_URL=$TUNNEL_URL" >> $GITHUB_ENV
-          echo "✓ Tunnel created: $TUNNEL_URL"
+          echo "✓ Tunnel created successfully: $TUNNEL_URL"
 
       - name: Post PR comment with access details
         if: github.event_name == 'pull_request' && env.TUNNEL_URL != ''
