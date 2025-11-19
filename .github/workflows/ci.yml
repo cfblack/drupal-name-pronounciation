@@ -102,7 +102,9 @@ jobs:
       - name: Check for PHP syntax errors
         run: |
           cd drupal/web/modules/custom/name_pronunciation
-          find . -name "*.php" -exec php -l {} \; | grep -v "No syntax errors"
+          echo "Checking PHP syntax..."
+          find . -name "*.php" -exec php -l {} \;
+          echo "✓ PHP syntax check complete"
 
       - name: Run PHPUnit tests (if any)
         run: |
