@@ -99,6 +99,11 @@ class NamePronunciationRecorderWidget extends WidgetBase {
           '#theme' => 'name_pronunciation_audio_player',
           '#audio_url' => $file->createFileUrl(),
           '#file_mime_type' => $file->getMimeType(),
+          '#attached' => [
+            'library' => [
+              'name_pronunciation/player',
+            ],
+          ],
         ];
       }
     }
