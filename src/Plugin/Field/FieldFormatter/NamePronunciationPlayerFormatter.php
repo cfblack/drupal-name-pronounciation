@@ -76,8 +76,18 @@ class NamePronunciationPlayerFormatter extends FormatterBase {
     $elements = [];
 
     foreach ($items as $delta => $item) {
-      /** @var \Drupal\file\FileInterface $file */
-      $file = $item->entity;
+      $file = NULL;
+
+      // Prioritize uploaded file over recorded file.
+      if (!empty($item->upload_target_id)) {
+        /** @var \Drupal\file\FileInterface $file */
+        $file = \Drupal::entityTypeManager()->getStorage('file')->load($item->upload_target_id);
+      }
+      // Fall back to recorded file if no upload exists.
+      elseif (!empty($item->target_id)) {
+        /** @var \Drupal\file\FileInterface $file */
+        $file = $item->entity;
+      }
 
       if ($file) {
         $elements[$delta] = [
