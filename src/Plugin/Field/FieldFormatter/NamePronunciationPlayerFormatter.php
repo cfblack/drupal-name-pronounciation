@@ -25,6 +25,7 @@ class NamePronunciationPlayerFormatter extends FormatterBase {
   public static function defaultSettings() {
     return [
       'show_description' => TRUE,
+      'show_written_pronunciation' => TRUE,
       'button_text' => 'Listen to pronunciation',
     ] + parent::defaultSettings();
   }
@@ -39,6 +40,12 @@ class NamePronunciationPlayerFormatter extends FormatterBase {
       '#type' => 'checkbox',
       '#title' => $this->t('Show description'),
       '#default_value' => $this->getSetting('show_description'),
+    ];
+
+    $elements['show_written_pronunciation'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Show written pronunciation'),
+      '#default_value' => $this->getSetting('show_written_pronunciation'),
     ];
 
     $elements['button_text'] = [
@@ -64,6 +71,13 @@ class NamePronunciationPlayerFormatter extends FormatterBase {
       $summary[] = $this->t('Show description: No');
     }
 
+    if ($this->getSetting('show_written_pronunciation')) {
+      $summary[] = $this->t('Show written pronunciation: Yes');
+    }
+    else {
+      $summary[] = $this->t('Show written pronunciation: No');
+    }
+
     $summary[] = $this->t('Button text: @text', ['@text' => $this->getSetting('button_text')]);
 
     return $summary;
@@ -86,6 +100,7 @@ class NamePronunciationPlayerFormatter extends FormatterBase {
           '#file_mime_type' => $file->getMimeType(),
           '#button_text' => $this->getSetting('button_text'),
           '#description' => $this->getSetting('show_description') ? $item->description : NULL,
+          '#written_pronunciation' => $this->getSetting('show_written_pronunciation') ? $item->written_pronunciation : NULL,
           '#attached' => [
             'library' => [
               'name_pronunciation/player',
