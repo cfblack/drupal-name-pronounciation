@@ -12,7 +12,7 @@
 
       players.forEach(function (playerElement) {
         // Skip if already initialized.
-        if (playerElement.dataset.initialized) {
+        if (playerElement.dataset.initialized === 'true') {
           return;
         }
         playerElement.dataset.initialized = 'true';
@@ -29,9 +29,24 @@
           e.preventDefault();
 
           if (audioElement.paused) {
-            audioElement.play();
-            playButton.classList.add('playing');
-            playButton.setAttribute('aria-label', 'Pause pronunciation');
+            // Handle the promise returned by play() to catch errors.
+            const playPromise = audioElement.play();
+
+            if (playPromise !== undefined) {
+              playPromise
+                .then(function() {
+                  // Playback started successfully.
+                  playButton.classList.add('playing');
+                  playButton.setAttribute('aria-label', 'Pause pronunciation');
+                })
+                .catch(function(error) {
+                  // Auto-play was prevented or another error occurred.
+                  console.error('Audio playback failed:', error);
+                  playButton.disabled = true;
+                  playButton.classList.add('error');
+                  playButton.setAttribute('aria-label', 'Audio playback failed');
+                });
+            }
           } else {
             audioElement.pause();
             playButton.classList.remove('playing');

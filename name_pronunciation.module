@@ -14,6 +14,8 @@ function name_pronunciation_theme($existing, $type, $theme, $path) {
       'variables' => [
         'audio_url' => NULL,
         'file_mime_type' => NULL,
+        'button_text' => NULL,
+        'description' => NULL,
       ],
     ],
   ];
