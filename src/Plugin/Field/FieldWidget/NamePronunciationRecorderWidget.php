@@ -132,7 +132,7 @@ class NamePronunciationRecorderWidget extends WidgetBase {
           \Drupal::service('file_system')->prepareDirectory($directory, \Drupal\Core\File\FileSystemInterface::CREATE_DIRECTORY);
 
           // Save the file.
-          $file = file_save_data($data, $directory . '/' . $filename, \Drupal\Core\File\FileSystemInterface::EXISTS_REPLACE);
+          $file = \Drupal::service('file.repository')->writeData($data, $directory . '/' . $filename, \Drupal\Core\File\FileSystemInterface::EXISTS_REPLACE);
 
           if ($file) {
             $value['target_id'] = $file->id();
