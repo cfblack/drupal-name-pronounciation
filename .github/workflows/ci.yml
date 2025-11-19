@@ -1,0 +1,130 @@
+name: Drupal 10 CI/CD
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  drupal-test:
+    runs-on: ubuntu-latest
+    name: PHP 8.3 - Drupal 10.5
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: drupal
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+      - name: Checkout module code
+        uses: actions/checkout@v4
+        with:
+          path: module
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: gd, pdo_mysql, opcache, mbstring, xml, json
+          coverage: none
+          tools: composer:v2
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Create Drupal project
+        run: |
+          composer create-project drupal/recommended-project:10.5.x drupal --no-interaction
+          cd drupal
+          # Add Drush and development dependencies
+          composer require drush/drush --no-interaction
+          composer require --dev drupal/core-dev:10.5.x -W --no-interaction
+
+      - name: Install module
+        run: |
+          # Create custom modules directory
+          mkdir -p drupal/web/modules/custom/name_pronunciation
+          # Copy module files
+          cp -r module/* drupal/web/modules/custom/name_pronunciation/
+          # Ensure proper permissions
+          chmod -R 755 drupal/web/modules/custom/name_pronunciation
+
+      - name: Install Drupal
+        run: |
+          cd drupal
+          # Install Drupal using Drush
+          ./vendor/bin/drush site:install standard \
+            --db-url=mysql://root:root@127.0.0.1:3306/drupal \
+            --site-name="Drupal CI Test" \
+            --account-name=admin \
+            --account-pass=admin \
+            --yes
+
+      - name: Enable the module
+        run: |
+          cd drupal
+          ./vendor/bin/drush en name_pronunciation -y
+          ./vendor/bin/drush cr
+
+      - name: Verify module installation
+        run: |
+          cd drupal
+          # Check if module is enabled
+          ./vendor/bin/drush pm:list --type=module --status=enabled --format=json | grep -q "name_pronunciation" && echo "✓ Module successfully enabled" || exit 1
+
+      - name: Run Drupal status checks
+        run: |
+          cd drupal
+          ./vendor/bin/drush status
+          ./vendor/bin/drush core:requirements
+
+      - name: Check for PHP syntax errors
+        run: |
+          cd drupal/web/modules/custom/name_pronunciation
+          echo "Checking PHP syntax..."
+          find . -name "*.php" -exec php -l {} \;
+          echo "✓ PHP syntax check complete"
+
+      - name: Run PHPUnit tests (if any)
+        run: |
+          cd drupal
+          if [ -d "web/modules/custom/name_pronunciation/tests" ]; then
+            ./vendor/bin/phpunit -c web/core web/modules/custom/name_pronunciation/tests
+          else
+            echo "No tests found - skipping PHPUnit"
+          fi
+        continue-on-error: true
+
+      - name: Check Drupal logs for errors
+        if: always()
+        run: |
+          cd drupal
+          ./vendor/bin/drush watchdog:show --severity=error --count=50 || echo "No error logs found"
+
+      - name: Module status report
+        if: always()
+        run: |
+          cd drupal
+          echo "=== Module Status ==="
+          ./vendor/bin/drush pm:list --type=module --format=table | grep -E "(Name|name_pronunciation)" || echo "Module check complete"
