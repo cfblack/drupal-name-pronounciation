@@ -137,15 +137,24 @@ jobs:
       - name: Save Drupal installation for test environment
         if: github.event_name == 'pull_request'
         run: |
+          # Export the database
+          cd drupal
+          ./vendor/bin/drush sql-dump --result-file=/tmp/drupal-db.sql
+          echo "✓ Database exported to /tmp/drupal-db.sql"
+
           # Create a tarball of the Drupal installation to share with test-environment job
+          cd ..
           tar -czf /tmp/drupal-install.tar.gz drupal/
+          echo "✓ Drupal files archived"
 
       - name: Upload Drupal installation artifact
         if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: drupal-installation
-          path: /tmp/drupal-install.tar.gz
+          path: |
+            /tmp/drupal-install.tar.gz
+            /tmp/drupal-db.sql
           retention-days: 1
 
   # Separate job for test environment - runs in parallel after tests pass
@@ -194,6 +203,23 @@ jobs:
           cd ~
           tar -xzf /tmp/drupal-install.tar.gz
           echo "✓ Drupal installation restored"
+
+      - name: Import database
+        run: |
+          # Wait for MySQL to be ready
+          echo "Waiting for MySQL to be ready..."
+          for i in {1..30}; do
+            if mysqladmin ping -h127.0.0.1 -uroot -proot --silent; then
+              echo "✓ MySQL is ready"
+              break
+            fi
+            sleep 1
+          done
+
+          # Import the database
+          echo "Importing database..."
+          mysql -h127.0.0.1 -uroot -proot drupal < /tmp/drupal-db.sql
+          echo "✓ Database imported successfully"
 
       # Test Environment Access for PR Reviewers
       - name: Start PHP web server
