@@ -57,7 +57,8 @@ jobs:
         run: |
           composer create-project drupal/recommended-project:10.5.x drupal --no-interaction
           cd drupal
-          # Add development dependencies with all dependencies flag
+          # Add Drush and development dependencies
+          composer require drush/drush --no-interaction
           composer require --dev drupal/core-dev:10.5.x -W --no-interaction
 
       - name: Install module
