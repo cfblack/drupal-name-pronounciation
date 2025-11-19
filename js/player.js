@@ -12,7 +12,7 @@
 
       players.forEach(function (playerElement) {
         // Skip if already initialized.
-        if (playerElement.dataset.initialized) {
+        if (playerElement.dataset.initialized === 'true') {
           return;
         }
         playerElement.dataset.initialized = 'true';
