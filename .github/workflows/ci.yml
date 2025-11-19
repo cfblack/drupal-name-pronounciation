@@ -13,6 +13,11 @@ jobs:
     runs-on: ubuntu-latest
     name: PHP 8.3 - Drupal 10.5
 
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+
     services:
       mysql:
         image: mysql:8.0
@@ -186,8 +191,38 @@ jobs:
           echo "TUNNEL_URL=$TUNNEL_URL" >> $GITHUB_ENV
           echo "✓ Tunnel created successfully: $TUNNEL_URL"
 
+      - name: Output test environment URL to summary
+        if: github.event_name == 'pull_request' && env.TUNNEL_URL != ''
+        run: |
+          echo "## 🧪 Test Environment Ready!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔗 Access Details" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**URL:** $TUNNEL_URL" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Admin Login:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Username: \`admin\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Password: \`admin\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📝 How to Test" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "1. Click the URL above to access the test site" >> $GITHUB_STEP_SUMMARY
+          echo "2. Log in with the admin credentials" >> $GITHUB_STEP_SUMMARY
+          echo "3. Navigate to **Structure > Content types**" >> $GITHUB_STEP_SUMMARY
+          echo "4. Add the Name Pronunciation field to a content type" >> $GITHUB_STEP_SUMMARY
+          echo "5. Create content and test the audio recording functionality" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### ⏱️ Environment Availability" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "This test environment will remain available for **2 hours** from now." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "*Environment created at: $(date -u +"%Y-%m-%dT%H:%M:%SZ")*" >> $GITHUB_STEP_SUMMARY
+
       - name: Post PR comment with access details
         if: github.event_name == 'pull_request' && env.TUNNEL_URL != ''
+        continue-on-error: true
         uses: actions/github-script@v7
         with:
           script: |
