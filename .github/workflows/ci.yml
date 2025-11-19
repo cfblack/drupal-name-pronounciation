@@ -128,3 +128,111 @@ jobs:
           cd drupal
           echo "=== Module Status ==="
           ./vendor/bin/drush pm:list --type=module --format=table | grep -E "(Name|name_pronunciation)" || echo "Module check complete"
+
+      # Test Environment Access for PR Reviewers
+      - name: Start PHP web server
+        if: github.event_name == 'pull_request'
+        run: |
+          cd drupal/web
+          php -S 0.0.0.0:8080 .ht.router.php > /tmp/server.log 2>&1 &
+          echo $! > /tmp/server.pid
+          sleep 3
+          echo "✓ Web server started on port 8080"
+
+      - name: Install and setup cloudflared tunnel
+        if: github.event_name == 'pull_request'
+        run: |
+          # Download cloudflared
+          wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+          sudo dpkg -i cloudflared-linux-amd64.deb
+
+          # Start tunnel in background
+          cloudflared tunnel --url http://localhost:8080 > /tmp/tunnel.log 2>&1 &
+          echo $! > /tmp/tunnel.pid
+
+          # Wait for tunnel URL to be generated
+          echo "Waiting for tunnel URL..."
+          for i in {1..30}; do
+            if grep -q "https://" /tmp/tunnel.log; then
+              break
+            fi
+            sleep 1
+          done
+
+          # Extract and display the URL
+          TUNNEL_URL=$(grep -oP 'https://[^\s]+\.trycloudflare\.com' /tmp/tunnel.log | head -1)
+          echo "TUNNEL_URL=$TUNNEL_URL" >> $GITHUB_ENV
+          echo "✓ Tunnel created: $TUNNEL_URL"
+
+      - name: Post PR comment with access details
+        if: github.event_name == 'pull_request' && env.TUNNEL_URL != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const tunnelUrl = process.env.TUNNEL_URL;
+            const body = `## 🧪 Test Environment Ready!
+
+            Your PR has been deployed to a test environment. You can now test the **Name Pronunciation** module functionality directly in a live Drupal site.
+
+            ### 🔗 Access Details
+
+            **URL:** ${tunnelUrl}
+
+            **Admin Login:**
+            - Username: \`admin\`
+            - Password: \`admin\`
+
+            ### 📝 How to Test
+
+            1. Click the URL above to access the test site
+            2. Log in with the admin credentials
+            3. Navigate to **Structure > Content types**
+            4. Add the Name Pronunciation field to a content type
+            5. Create content and test the audio recording functionality
+
+            ### ⏱️ Environment Availability
+
+            This test environment will remain available for **2 hours** from now.
+
+            ### ⚠️ Note
+
+            - This is a temporary test environment
+            - All data will be lost when the environment closes
+            - The URL is publicly accessible but temporary
+
+            ---
+
+            *Environment created at: ${new Date().toISOString()}*`;
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+
+      - name: Keep environment alive for reviewers
+        if: github.event_name == 'pull_request' && env.TUNNEL_URL != ''
+        run: |
+          echo "🌐 Test environment is now accessible at: $TUNNEL_URL"
+          echo "👤 Login credentials - Username: admin | Password: admin"
+          echo ""
+          echo "⏱️  Keeping environment alive for 2 hours..."
+          echo "   Reviewers can access and test the module during this time."
+          echo ""
+
+          # Keep the environment alive for 2 hours (7200 seconds)
+          # This allows PR reviewers ample time to test
+          sleep 7200
+
+          echo ""
+          echo "⏰ 2-hour review period has ended."
+          echo "   Shutting down test environment..."
+
+          # Cleanup
+          if [ -f /tmp/tunnel.pid ]; then
+            kill $(cat /tmp/tunnel.pid) 2>/dev/null || true
+          fi
+          if [ -f /tmp/server.pid ]; then
+            kill $(cat /tmp/server.pid) 2>/dev/null || true
+          fi
