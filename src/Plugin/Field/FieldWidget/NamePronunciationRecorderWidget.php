@@ -38,6 +38,18 @@ class NamePronunciationRecorderWidget extends WidgetBase {
       '#maxlength' => 255,
     ];
 
+    // Add file upload field.
+    $element['upload_target_id'] = [
+      '#type' => 'managed_file',
+      '#title' => $this->t('Upload audio file'),
+      '#description' => $this->t('Upload a pre-recorded audio file instead of recording. This will be used instead of a recorded pronunciation if provided.'),
+      '#default_value' => !empty($items[$delta]->upload_target_id) ? [$items[$delta]->upload_target_id] : NULL,
+      '#upload_location' => 'public://pronunciations',
+      '#upload_validators' => [
+        'file_validate_extensions' => [$this->getFieldSetting('file_extensions')],
+      ],
+    ];
+
     $element['written_pronunciation'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Written Pronunciation'),
@@ -89,7 +101,34 @@ class NamePronunciationRecorderWidget extends WidgetBase {
       '#attributes' => ['class' => ['recorder-preview', 'hidden']],
     ];
 
-    // If there's an existing file, show the current recording.
+    // If there's an existing uploaded file, show it.
+    if (!empty($items[$delta]->upload_target_id)) {
+      /** @var \Drupal\file\FileInterface $file */
+      $file = \Drupal::entityTypeManager()->getStorage('file')->load($items[$delta]->upload_target_id);
+      if ($file) {
+        $element['current_upload'] = [
+          '#type' => 'container',
+          '#attributes' => ['class' => ['current-pronunciation-upload']],
+        ];
+
+        $element['current_upload']['label'] = [
+          '#markup' => '<strong>' . $this->t('Current uploaded file:') . '</strong>',
+        ];
+
+        $element['current_upload']['audio'] = [
+          '#theme' => 'name_pronunciation_audio_player',
+          '#audio_url' => $file->createFileUrl(),
+          '#file_mime_type' => $file->getMimeType(),
+          '#attached' => [
+            'library' => [
+              'name_pronunciation/player',
+            ],
+          ],
+        ];
+      }
+    }
+
+    // If there's an existing recording, show it.
     if (!empty($items[$delta]->target_id)) {
       /** @var \Drupal\file\FileInterface $file */
       $file = $items[$delta]->entity;
@@ -129,6 +168,17 @@ class NamePronunciationRecorderWidget extends WidgetBase {
    */
   public function massageFormValues(array $values, array $form, FormStateInterface $form_state) {
     foreach ($values as &$value) {
+      // Handle the uploaded file.
+      if (!empty($value['upload_target_id'])) {
+        // The managed_file element returns an array with the file ID.
+        if (is_array($value['upload_target_id'])) {
+          $value['upload_target_id'] = reset($value['upload_target_id']);
+        }
+      }
+      else {
+        $value['upload_target_id'] = NULL;
+      }
+
       // Handle the audio data and create a file entity.
       if (!empty($value['audio_data'])) {
         $audio_data = $value['audio_data'];
@@ -158,6 +208,7 @@ class NamePronunciationRecorderWidget extends WidgetBase {
       // Clean up form elements that shouldn't be saved.
       unset($value['recorder']);
       unset($value['current']);
+      unset($value['current_upload']);
     }
 
     return $values;

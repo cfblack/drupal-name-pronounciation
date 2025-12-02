@@ -55,6 +55,10 @@ class NamePronunciationItem extends EntityReferenceItem {
     $properties['written_pronunciation'] = DataDefinition::create('string')
       ->setLabel(t('Written Pronunciation'))
       ->setDescription(t('A text representation of how to pronounce the name (e.g., "CARE-sun", "car-SON")'));
+      
+    $properties['upload_target_id'] = DataDefinition::create('integer')
+      ->setLabel(t('Uploaded file ID'))
+      ->setDescription(t('The ID of the uploaded audio file'));
 
     return $properties;
   }
@@ -75,6 +79,12 @@ class NamePronunciationItem extends EntityReferenceItem {
       'description' => 'A written/phonetic representation of the pronunciation.',
       'type' => 'varchar',
       'length' => 255,
+    ];
+
+    $schema['columns']['upload_target_id'] = [
+      'description' => 'The ID of the uploaded audio file.',
+      'type' => 'int',
+      'unsigned' => TRUE,
     ];
 
     return $schema;
