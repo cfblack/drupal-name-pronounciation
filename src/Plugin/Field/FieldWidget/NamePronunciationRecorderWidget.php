@@ -53,6 +53,14 @@ class NamePronunciationRecorderWidget extends WidgetBase {
       ],
     ];
 
+    $element['written_pronunciation'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Written Pronunciation'),
+      '#default_value' => $items[$delta]->written_pronunciation ?? '',
+      '#description' => $this->t('How to pronounce the name (e.g., "CARE-sun", "car-SON")'),
+      '#maxlength' => 255,
+    ];
+
     $element['recorder'] = [
       '#type' => 'container',
       '#attributes' => [

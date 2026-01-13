@@ -8,6 +8,7 @@
  * - file_mime_type: MIME type of the audio file.
  * - button_text: Text to display with the play button.
  * - description: Optional description of the pronunciation.
+ * - written_pronunciation: Optional written/phonetic pronunciation.
  */
 #}
 <div class="name-pronunciation-player">
@@ -17,6 +18,10 @@
 
   {% if description %}
     <span class="pronunciation-description">{{ description }}</span>
+  {% endif %}
+
+  {% if written_pronunciation %}
+    <span class="pronunciation-written">({{ written_pronunciation }})</span>
   {% endif %}
 
   <audio preload="metadata">

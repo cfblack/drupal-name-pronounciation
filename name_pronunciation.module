@@ -16,6 +16,7 @@ function name_pronunciation_theme($existing, $type, $theme, $path) {
         'file_mime_type' => NULL,
         'button_text' => NULL,
         'description' => NULL,
+        'written_pronunciation' => NULL,
       ],
     ],
   ];
