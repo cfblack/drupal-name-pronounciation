@@ -1,0 +1,10 @@
+{
+  "name": "drupal/name_pronunciation",
+  "type": "drupal-module",
+  "description": "Provides a field type for recording and playing audio pronunciations of names.",
+  "keywords": ["Drupal", "audio", "pronunciation", "field"],
+  "license": "GPL-2.0-or-later",
+  "require": {
+    "drupal/core": "^10 || ^11"
+  }
+}
