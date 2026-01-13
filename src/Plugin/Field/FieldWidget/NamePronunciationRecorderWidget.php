@@ -23,6 +23,9 @@ class NamePronunciationRecorderWidget extends WidgetBase {
    * {@inheritdoc}
    */
   public function formElement(FieldItemListInterface $items, $delta, array $element, array &$form, FormStateInterface $form_state) {
+    // Wrap all pronunciation fields in a fieldset.
+    $element['#type'] = 'fieldset';
+    $element['#title'] = $this->t('Pronunciation');
     $element['#attached']['library'][] = 'name_pronunciation/recorder';
 
     $element['target_id'] = [
