@@ -2,20 +2,7 @@
 # DrupalCI GitLabCI template
 #
 # Drupal's Gitlab-CI integration
-#
-# See https://www.drupal.org/drupalorg/docs/drupal-ci/customizing-drupalci-testing
 ################
 
 include:
-  - project: $_GITLAB_TEMPLATES_REPO
-    ref: $_GITLAB_TEMPLATES_REF
-    file:
-      - '/includes/include.drupalci.main.yml'
-
-variables:
-  _TARGET_PHP: "8.3"
-  _TARGET_DB: "sqlite-3"
-  OPT_IN_TEST_CURRENT: 1
-  _CONFIG_DOCKERHUB_ROOT: "drupalci"
-  _CONFIG_DOCKERHUB_SUFFIX: "-apache"
-  _CONFIG_DOCKERHUB_TAG: "production"
+  - remote: https://git.drupalcode.org/project/gitlab_templates/raw/main/gitlab-ci.yml
