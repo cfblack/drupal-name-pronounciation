@@ -106,8 +106,8 @@
 /* Speaker/play icon using CSS */
 .pronunciation-play-button::before {
   display: block;
-  content: "";
   width: 0;
+  content: "";
   height: 0;
   margin-left: 3px;
   transition: border-left-color 0.2s;
