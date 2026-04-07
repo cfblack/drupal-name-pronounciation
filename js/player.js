@@ -4,10 +4,8 @@
  */
 
 (function (Drupal) {
-  'use strict';
-
   Drupal.behaviors.namePronunciationPlayer = {
-    attach: function (context, settings) {
+    attach(context, settings) {
       const players = context.querySelectorAll('.name-pronunciation-player');
 
       players.forEach(function (playerElement) {
@@ -17,7 +15,9 @@
         }
         playerElement.dataset.initialized = 'true';
 
-        const playButton = playerElement.querySelector('.pronunciation-play-button');
+        const playButton = playerElement.querySelector(
+          '.pronunciation-play-button',
+        );
         const audioElement = playerElement.querySelector('audio');
 
         if (!playButton || !audioElement) {
@@ -34,17 +34,20 @@
 
             if (playPromise !== undefined) {
               playPromise
-                .then(function() {
+                .then(function () {
                   // Playback started successfully.
                   playButton.classList.add('playing');
                   playButton.setAttribute('aria-label', 'Pause pronunciation');
                 })
-                .catch(function(error) {
+                .catch(function (error) {
                   // Auto-play was prevented or another error occurred.
                   console.error('Audio playback failed:', error);
                   playButton.disabled = true;
                   playButton.classList.add('error');
-                  playButton.setAttribute('aria-label', 'Audio playback failed');
+                  playButton.setAttribute(
+                    'aria-label',
+                    'Audio playback failed',
+                  );
                 });
             }
           } else {
@@ -67,7 +70,6 @@
           playButton.setAttribute('aria-label', 'Audio unavailable');
         });
       });
-    }
+    },
   };
-
 })(Drupal);

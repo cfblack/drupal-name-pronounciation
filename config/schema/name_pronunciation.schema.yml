@@ -1,0 +1,37 @@
+field.storage_settings.name_pronunciation:
+  type: field.storage_settings.entity_reference
+  label: 'Name pronunciation storage settings'
+  mapping:
+    uri_scheme:
+      type: string
+      label: 'Upload destination'
+
+field.field_settings.name_pronunciation:
+  type: field.field_settings.entity_reference
+  label: 'Name pronunciation field settings'
+  mapping:
+    file_extensions:
+      type: string
+      label: 'Allowed file extensions'
+    max_duration:
+      type: integer
+      label: 'Maximum recording duration'
+
+field.formatter.settings.name_pronunciation_player:
+  type: mapping
+  label: 'Name pronunciation player formatter settings'
+  mapping:
+    show_description:
+      type: boolean
+      label: 'Show description'
+    show_written_pronunciation:
+      type: boolean
+      label: 'Show written pronunciation'
+    button_text:
+      type: string
+      label: 'Button text'
+
+field.widget.settings.name_pronunciation_recorder:
+  type: mapping
+  label: 'Name pronunciation recorder widget settings'
+  mapping: {}
