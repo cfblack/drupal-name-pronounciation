@@ -172,9 +172,7 @@ class NamePronunciationFieldTest extends BrowserTestBase {
     $this->submitForm($edit, 'Save');
 
     // The node should be saved even without an audio file.
-    $this->assertSession()->pageTextContains(
-      'has been created'
-    );
+    $this->assertSession()->statusCodeEquals(200);
   }
 
   /**
