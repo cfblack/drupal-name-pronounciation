@@ -15,8 +15,12 @@ sites/simpletest
 # Ignore .DS_Store files on macOS.
 .DS_Store
 
-# Ignore node_modules
+# Ignore node_modules and npm files (local dev tooling)
 node_modules/
+package.json
+package-lock.json
+.stylelintrc.json
+.prettierrc.json
 
 # Ignore npm/yarn debug logs
 npm-debug.log*

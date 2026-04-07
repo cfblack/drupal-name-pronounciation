@@ -107,9 +107,9 @@
 .pronunciation-play-button::before {
   display: block;
   width: 0;
-  content: "";
   height: 0;
   margin-left: 3px;
+  content: "";
   transition: border-left-color 0.2s;
   border-width: 8px 0 8px 12px;
   border-style: solid;

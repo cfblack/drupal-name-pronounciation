@@ -196,6 +196,56 @@ drush en name_pronunciation
 drush pmu name_pronunciation
 ```
 
+### Running Stylelint Locally
+
+This module includes a CSS file
+(`css/pronunciation.css`) that is checked by
+Stylelint in the Drupal.org GitLab CI pipeline.
+To catch CSS linting issues before pushing, you
+can run Stylelint locally.
+
+The CI pipeline uses Drupal core's Stylelint and
+Prettier configurations. These files are not
+committed to this repo because they are pulled
+from Drupal core at CI runtime and may change
+over time. Fetch the latest copies with:
+
+```bash
+curl -OL https://git.drupalcode.org/project/\
+drupal/-/raw/11.x/core/.stylelintrc.json
+curl -OL https://git.drupalcode.org/project/\
+drupal/-/raw/11.x/core/.prettierrc.json
+```
+
+Create a `package.json` with the required dev
+dependencies:
+
+```json
+{
+  "private": true,
+  "devDependencies": {
+    "prettier": "^3.0.0",
+    "stylelint": "^16.0.0",
+    "stylelint-config-standard": "^36.0.0",
+    "stylelint-order": "^6.0.0",
+    "stylelint-prettier": "^5.0.0"
+  }
+}
+```
+
+Then install and run:
+
+```bash
+npm install
+npx stylelint "css/**/*.css"
+```
+
+To auto-fix issues where possible:
+
+```bash
+npx stylelint "css/**/*.css" --fix
+```
+
 ## Support
 
 For bug reports and feature requests, please use the project's issue queue.
