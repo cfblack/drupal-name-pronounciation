@@ -2,10 +2,15 @@
 
 namespace Drupal\name_pronunciation\Plugin\Field\FieldWidget;
 
+use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\WidgetBase;
+use Drupal\Core\File\FileExists;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\file\FileRepositoryInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Provides a widget for recording name pronunciations.
@@ -19,6 +24,53 @@ use Drupal\Core\Form\FormStateInterface;
  * )
  */
 class NamePronunciationRecorderWidget extends WidgetBase {
+
+  /**
+   * The entity type manager.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
+   * The file system service.
+   *
+   * @var \Drupal\Core\File\FileSystemInterface
+   */
+  protected $fileSystem;
+
+  /**
+   * The file repository service.
+   *
+   * @var \Drupal\file\FileRepositoryInterface
+   */
+  protected $fileRepository;
+
+  /**
+   * {@inheritdoc}
+   */
+  public function __construct($plugin_id, $plugin_definition, FieldDefinitionInterface $field_definition, array $settings, array $third_party_settings, EntityTypeManagerInterface $entity_type_manager, FileSystemInterface $file_system, FileRepositoryInterface $file_repository) {
+    parent::__construct($plugin_id, $plugin_definition, $field_definition, $settings, $third_party_settings);
+    $this->entityTypeManager = $entity_type_manager;
+    $this->fileSystem = $file_system;
+    $this->fileRepository = $file_repository;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    return new static(
+      $plugin_id,
+      $plugin_definition,
+      $configuration['field_definition'],
+      $configuration['settings'],
+      $configuration['third_party_settings'],
+      $container->get('entity_type.manager'),
+      $container->get('file_system'),
+      $container->get('file.repository'),
+    );
+  }
 
   /**
    * {@inheritdoc}
@@ -108,7 +160,7 @@ class NamePronunciationRecorderWidget extends WidgetBase {
     // If there's an existing uploaded file, show it.
     if (!empty($items[$delta]->upload_target_id)) {
       /** @var \Drupal\file\FileInterface $file */
-      $file = \Drupal::entityTypeManager()->getStorage('file')->load($items[$delta]->upload_target_id);
+      $file = $this->entityTypeManager->getStorage('file')->load($items[$delta]->upload_target_id);
       if ($file) {
         $element['current_upload'] = [
           '#type' => 'container',
@@ -196,10 +248,10 @@ class NamePronunciationRecorderWidget extends WidgetBase {
           $directory = 'public://pronunciations';
 
           // Ensure directory exists.
-          \Drupal::service('file_system')->prepareDirectory($directory, FileSystemInterface::CREATE_DIRECTORY);
+          $this->fileSystem->prepareDirectory($directory, FileSystemInterface::CREATE_DIRECTORY);
 
           // Save the file.
-          $file = \Drupal::service('file.repository')->writeData($data, $directory . '/' . $filename, FileSystemInterface::EXISTS_REPLACE);
+          $file = $this->fileRepository->writeData($data, $directory . '/' . $filename, FileExists::Replace);
 
           if ($file) {
             $value['target_id'] = $file->id();
