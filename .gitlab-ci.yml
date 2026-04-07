@@ -13,6 +13,9 @@ include:
       - '/includes/include.drupalci.main.yml'
 
 variables:
-  OPT_IN_TEST_CURRENT: 1
   _TARGET_PHP: "8.3"
   _TARGET_DB: "sqlite-3"
+  OPT_IN_TEST_CURRENT: 1
+  _CONFIG_DOCKERHUB_ROOT: "drupalci"
+  _CONFIG_DOCKERHUB_SUFFIX: "-apache"
+  _CONFIG_DOCKERHUB_TAG: "production"
