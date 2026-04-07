@@ -160,7 +160,7 @@ class NamePronunciationFieldTest extends BrowserTestBase {
     ];
     $this->submitForm($edit, 'Save');
 
-    // The node should be saved (even without audio file, depending on field requirements).
+    // The node should be saved even without an audio file.
     $this->assertSession()->pageTextContains('Test Node');
   }
 
@@ -278,7 +278,7 @@ class NamePronunciationFieldTest extends BrowserTestBase {
     // Check that audio element exists.
     $assert->elementExists('css', 'audio source');
 
-    // The uploaded file should be used (check the source URL contains uploaded.mp3).
+    // The uploaded file should be used.
     $page_source = $this->getSession()->getPage()->getContent();
     $this->assertStringContainsString('uploaded.mp3', $page_source);
   }
@@ -385,7 +385,7 @@ class NamePronunciationFieldTest extends BrowserTestBase {
   /**
    * Tests creating a field through the UI.
    */
-  public function testCreateFieldThroughUI(): void {
+  public function testCreateFieldThroughUi(): void {
     $this->drupalLogin($this->adminUser);
 
     // Create a new content type for this test.

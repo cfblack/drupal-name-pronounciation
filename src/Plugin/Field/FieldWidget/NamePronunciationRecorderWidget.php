@@ -4,6 +4,7 @@ namespace Drupal\name_pronunciation\Plugin\Field\FieldWidget;
 
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\WidgetBase;
+use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Form\FormStateInterface;
 
 /**
@@ -195,10 +196,10 @@ class NamePronunciationRecorderWidget extends WidgetBase {
           $directory = 'public://pronunciations';
 
           // Ensure directory exists.
-          \Drupal::service('file_system')->prepareDirectory($directory, \Drupal\Core\File\FileSystemInterface::CREATE_DIRECTORY);
+          \Drupal::service('file_system')->prepareDirectory($directory, FileSystemInterface::CREATE_DIRECTORY);
 
           // Save the file.
-          $file = \Drupal::service('file.repository')->writeData($data, $directory . '/' . $filename, \Drupal\Core\File\FileSystemInterface::EXISTS_REPLACE);
+          $file = \Drupal::service('file.repository')->writeData($data, $directory . '/' . $filename, FileSystemInterface::EXISTS_REPLACE);
 
           if ($file) {
             $value['target_id'] = $file->id();

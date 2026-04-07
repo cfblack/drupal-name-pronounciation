@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\name_pronunciation\Kernel;
 
-use Drupal\Core\Entity\EntityInterface;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\file\Entity\File;
@@ -230,8 +229,8 @@ class NamePronunciationItemTest extends KernelTestBase {
     // Reload the node.
     $node = Node::load($node->id());
 
-    // Note: Without a target_id, the field item might be considered empty
-    // depending on the isEmpty() implementation. This tests the storage behavior.
+    // Note: Without a target_id, the field item might be considered
+    // empty depending on the isEmpty() implementation.
     $field_value = $node->get('field_pronunciation')->first();
     if ($field_value) {
       $this->assertEquals('First name', $field_value->description);
