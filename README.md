@@ -1,6 +1,6 @@
-# Name Pronunciation
+# Name Pronunciation Field
 
-A Drupal module that provides a custom field type for recording and playing audio pronunciations of names.
+A Drupal module that provides a custom compound field type for recording and playing audio pronunciations of names.
 
 ## Overview
 
