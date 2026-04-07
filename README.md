@@ -1,18 +1,30 @@
 # Name Pronunciation Field
 
-A Drupal module that provides a custom compound field type for recording and playing audio pronunciations of names.
+A Drupal module that provides a custom compound field type
+for recording and playing audio pronunciations of names.
 
 ## Overview
 
-The Name Pronunciation module allows users to record audio pronunciations of first names, last names, or full names directly from their browser using their device's microphone. These recordings can be added when editing nodes in the Drupal admin interface and played back by site visitors with a simple button interface.
+The Name Pronunciation module allows users to record audio
+pronunciations of first names, last names, or full names
+directly from their browser using their device's microphone.
+These recordings can be added when editing nodes in the
+Drupal admin interface and played back by site visitors
+with a simple button interface.
 
 ## Features
 
-- **Browser-based Recording**: Record audio directly from your computer or phone's microphone
-- **Easy Integration**: Add the pronunciation field to any content type
-- **Simple Playback**: Site visitors can play pronunciations with a single click on a speaker icon button
-- **Multiple Audio Format Support**: Automatically uses the best supported audio format for the user's browser (WebM, OGG, MP4, etc.)
-- **Optional Descriptions**: Add context like "First name", "Last name", or "Full name"
+- **Browser-based Recording**: Record audio directly from
+  your computer or phone's microphone
+- **Easy Integration**: Add the pronunciation field to any
+  content type
+- **Simple Playback**: Site visitors can play pronunciations
+  with a single click on a speaker icon button
+- **Multiple Audio Format Support**: Automatically uses the
+  best supported audio format for the user's browser
+  (WebM, OGG, MP4, etc.)
+- **Optional Descriptions**: Add context like "First name",
+  "Last name", or "Full name"
 - **Preview Before Saving**: Hear your recording before submitting the form
 
 ## Requirements
@@ -147,13 +159,16 @@ Supported browsers include:
 
 ### Field Configuration
 
-- **File extensions**: Configure which audio formats are allowed (default: webm, ogg, mp3, mp4, m4a, wav)
-- **Maximum duration**: Set recording length limits (default: 10 seconds)
+- **File extensions**: Configure which audio formats are
+  allowed (default: webm, ogg, mp3, mp4, m4a, wav)
+- **Maximum duration**: Set recording length limits
+  (default: 10 seconds)
 
 ### Formatter Settings
 
 - **Show description**: Toggle display of the description text
-- **Button text**: Customize the accessible button text (default: "Listen to pronunciation")
+- **Button text**: Customize the accessible button text
+  (default: "Listen to pronunciation")
 
 ## Accessibility
 
