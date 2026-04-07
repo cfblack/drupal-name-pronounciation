@@ -52,3 +52,10 @@ phpunit.xml
 
 # Ignore Behat local configuration
 behat.local.yml
+
+# Ignore local development files
+.vscode/
+
+# Ignore AI Assistant files
+AGENTS.md
+CLAUDE.md
