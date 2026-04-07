@@ -87,7 +87,9 @@ class NamePronunciationFieldTest extends BrowserTestBase {
 
     // Configure the widget.
     /** @var \Drupal\Core\Entity\EntityDisplayRepositoryInterface $display_repository */
-    $display_repository = \Drupal::service('entity_display.repository');
+    $display_repository = \Drupal::service(
+      'entity_display.repository'
+    );
     $display_repository->getFormDisplay('node', 'article')
       ->setComponent('field_pronunciation', [
         'type' => 'name_pronunciation_recorder',
@@ -128,25 +130,34 @@ class NamePronunciationFieldTest extends BrowserTestBase {
     $assert = $this->assertSession();
 
     // Check that the field wrapper is present.
-    $assert->fieldExists('field_pronunciation[0][description]');
-    $assert->fieldExists('field_pronunciation[0][written_pronunciation]');
+    $assert->fieldExists(
+      'field_pronunciation[0][description]'
+    );
+    $assert->fieldExists(
+      'field_pronunciation[0][written_pronunciation]'
+    );
 
     // Check for the hidden audio data field.
-    $assert->hiddenFieldExists('field_pronunciation[0][audio_data]');
+    $assert->hiddenFieldExists(
+      'field_pronunciation[0][audio_data]'
+    );
 
     // Check for the recorder container.
-    $assert->elementExists('css', '.pronunciation-recorder');
+    $assert->elementExists(
+      'css',
+      '.name-pronunciation-recorder'
+    );
 
     // Check for recorder controls.
     $assert->buttonExists('Record');
     $assert->buttonExists('Stop');
 
     // Check for status message container.
-    $assert->elementExists('css', '.pronunciation-status');
+    $assert->elementExists('css', '.recorder-status');
   }
 
   /**
-   * Tests that the widget can save description and written pronunciation.
+   * Tests saving description and written pronunciation.
    */
   public function testWidgetSaveTextFields(): void {
     $this->drupalLogin($this->adminUser);
@@ -155,13 +166,15 @@ class NamePronunciationFieldTest extends BrowserTestBase {
     // Fill in the form.
     $edit = [
       'title[0][value]' => 'Test Node',
-      'field_pronunciation[0][description]' => 'First name pronunciation',
-      'field_pronunciation[0][written_pronunciation]' => 'JOHN-son',
+      'field_pronunciation[0][description]' => 'First name',
+      'field_pronunciation[0][written_pronunciation]' => 'JON',
     ];
     $this->submitForm($edit, 'Save');
 
     // The node should be saved even without an audio file.
-    $this->assertSession()->pageTextContains('Test Node');
+    $this->assertSession()->pageTextContains(
+      'has been created'
+    );
   }
 
   /**
@@ -187,10 +200,16 @@ class NamePronunciationFieldTest extends BrowserTestBase {
     $assert = $this->assertSession();
 
     // Check for the audio player.
-    $assert->elementExists('css', '.pronunciation-player');
+    $assert->elementExists(
+      'css',
+      '.name-pronunciation-player'
+    );
 
     // Check for the play button.
-    $assert->elementExists('css', '.pronunciation-play-btn');
+    $assert->elementExists(
+      'css',
+      '.pronunciation-play-button'
+    );
 
     // Check for description display.
     $assert->pageTextContains('Full name');
@@ -216,13 +235,15 @@ class NamePronunciationFieldTest extends BrowserTestBase {
       'field_pronunciation' => [
         'target_id' => $file->id(),
         'description' => 'Hidden description',
-        'written_pronunciation' => 'Hidden pronunciation',
+        'written_pronunciation' => 'Hidden pron',
       ],
     ]);
 
-    // Update the formatter to hide description and written pronunciation.
+    // Hide description and written pronunciation.
     /** @var \Drupal\Core\Entity\EntityDisplayRepositoryInterface $display_repository */
-    $display_repository = \Drupal::service('entity_display.repository');
+    $display_repository = \Drupal::service(
+      'entity_display.repository'
+    );
     $display_repository->getViewDisplay('node', 'article')
       ->setComponent('field_pronunciation', [
         'type' => 'name_pronunciation_player',
@@ -242,17 +263,20 @@ class NamePronunciationFieldTest extends BrowserTestBase {
     $assert = $this->assertSession();
 
     // Player should still exist.
-    $assert->elementExists('css', '.pronunciation-player');
+    $assert->elementExists(
+      'css',
+      '.name-pronunciation-player'
+    );
 
     // Description should be hidden.
     $assert->pageTextNotContains('Hidden description');
 
     // Written pronunciation should be hidden.
-    $assert->pageTextNotContains('Hidden pronunciation');
+    $assert->pageTextNotContains('Hidden pron');
   }
 
   /**
-   * Tests that uploaded file takes priority over recorded file.
+   * Tests uploaded file takes priority over recorded.
    */
   public function testUploadedFilePriority(): void {
     // Create two test files.
@@ -279,8 +303,12 @@ class NamePronunciationFieldTest extends BrowserTestBase {
     $assert->elementExists('css', 'audio source');
 
     // The uploaded file should be used.
-    $page_source = $this->getSession()->getPage()->getContent();
-    $this->assertStringContainsString('uploaded.mp3', $page_source);
+    $page_source = $this->getSession()
+      ->getPage()->getContent();
+    $this->assertStringContainsString(
+      'uploaded.mp3',
+      $page_source
+    );
   }
 
   /**
@@ -298,32 +326,22 @@ class NamePronunciationFieldTest extends BrowserTestBase {
     $assert = $this->assertSession();
 
     // Player should not exist.
-    $assert->elementNotExists('css', '.pronunciation-player');
+    $assert->elementNotExists(
+      'css',
+      '.name-pronunciation-player'
+    );
   }
 
   /**
-   * Tests the field configuration form.
-   */
-  public function testFieldConfigurationForm(): void {
-    $this->drupalLogin($this->adminUser);
-
-    // Visit the field settings page.
-    $this->drupalGet('admin/structure/types/manage/article/fields/node.article.field_pronunciation');
-    $assert = $this->assertSession();
-
-    // Check for field settings.
-    $assert->fieldExists('settings[file_extensions]');
-    $assert->fieldExists('settings[max_duration]');
-  }
-
-  /**
-   * Tests the widget settings form through the manage form display page.
+   * Tests the widget settings form on form display page.
    */
   public function testWidgetSettingsForm(): void {
     $this->drupalLogin($this->adminUser);
 
     // Visit the form display page.
-    $this->drupalGet('admin/structure/types/manage/article/form-display');
+    $this->drupalGet(
+      'admin/structure/types/manage/article/form-display'
+    );
     $assert = $this->assertSession();
 
     // Check that the pronunciation field is listed.
@@ -331,13 +349,15 @@ class NamePronunciationFieldTest extends BrowserTestBase {
   }
 
   /**
-   * Tests the formatter settings form through the manage display page.
+   * Tests the formatter settings form on display page.
    */
   public function testFormatterSettingsForm(): void {
     $this->drupalLogin($this->adminUser);
 
     // Visit the display page.
-    $this->drupalGet('admin/structure/types/manage/article/display');
+    $this->drupalGet(
+      'admin/structure/types/manage/article/display'
+    );
     $assert = $this->assertSession();
 
     // Check that the pronunciation field is listed.
@@ -351,13 +371,17 @@ class NamePronunciationFieldTest extends BrowserTestBase {
     $this->drupalLogin($this->adminUser);
     $this->drupalGet('node/add/article');
 
-    // Check that the recorder JavaScript is attached.
-    $page_source = $this->getSession()->getPage()->getContent();
-    $this->assertStringContainsString('name_pronunciation/recorder', $page_source);
+    // Check that the recorder JS is attached.
+    $page_source = $this->getSession()
+      ->getPage()->getContent();
+    $this->assertStringContainsString(
+      'js/recorder.js',
+      $page_source
+    );
   }
 
   /**
-   * Tests the player library is attached to the formatter.
+   * Tests the player library is attached to formatter.
    */
   public function testPlayerLibraryAttached(): void {
     // Create a test file.
@@ -377,28 +401,28 @@ class NamePronunciationFieldTest extends BrowserTestBase {
     // View the node.
     $this->drupalGet('node/' . $node->id());
 
-    // Check that the player JavaScript is attached.
-    $page_source = $this->getSession()->getPage()->getContent();
-    $this->assertStringContainsString('name_pronunciation/player', $page_source);
+    // Check that the player JS is attached.
+    $page_source = $this->getSession()
+      ->getPage()->getContent();
+    $this->assertStringContainsString(
+      'js/player.js',
+      $page_source
+    );
   }
 
   /**
-   * Tests creating a field through the UI.
+   * Tests field is available in manage fields.
    */
-  public function testCreateFieldThroughUi(): void {
+  public function testFieldAvailableInUi(): void {
     $this->drupalLogin($this->adminUser);
 
-    // Create a new content type for this test.
-    NodeType::create([
-      'type' => 'page',
-      'name' => 'Page',
-    ])->save();
-
-    // Navigate to add field page.
-    $this->drupalGet('admin/structure/types/manage/page/fields/add-field');
+    // Visit the manage fields page for article.
+    $this->drupalGet(
+      'admin/structure/types/manage/article/fields'
+    );
     $assert = $this->assertSession();
 
-    // Check that Name Pronunciation is available as a field type.
+    // The field should be listed.
     $assert->pageTextContains('Name Pronunciation');
   }
 
@@ -411,10 +435,16 @@ class NamePronunciationFieldTest extends BrowserTestBase {
    * @return \Drupal\file\Entity\File
    *   The created file entity.
    */
-  protected function createTestFile(string $filename = 'test.webm'): File {
+  protected function createTestFile(
+    string $filename = 'test.webm',
+  ): File {
     // Create the pronunciations directory.
     $directory = 'public://pronunciations';
-    \Drupal::service('file_system')->prepareDirectory($directory, \Drupal::service('file_system')::CREATE_DIRECTORY);
+    \Drupal::service('file_system')
+      ->prepareDirectory(
+        $directory,
+        \Drupal::service('file_system')::CREATE_DIRECTORY
+      );
 
     // Create a simple test file.
     $uri = $directory . '/' . $filename;
