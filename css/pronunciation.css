@@ -5,11 +5,11 @@
 
 /* Recorder styles */
 .name-pronunciation-recorder {
+  margin-top: 0.5em;
   padding: 1em;
   border: 1px solid #ccc;
   border-radius: 4px;
   background-color: #f9f9f9;
-  margin-top: 0.5em;
 }
 
 .recorder-controls {
@@ -19,17 +19,17 @@
 }
 
 .recorder-button {
+  cursor: pointer;
   padding: 0.5em 1em;
+  transition: background-color 0.2s;
   border: none;
   border-radius: 4px;
-  cursor: pointer;
   font-size: 1em;
-  transition: background-color 0.2s;
 }
 
 .recorder-record {
-  background-color: #0073aa;
   color: white;
+  background-color: #0073aa;
 }
 
 .recorder-record:hover {
@@ -37,8 +37,8 @@
 }
 
 .recorder-stop {
-  background-color: #dc3232;
   color: white;
+  background-color: #dc3232;
 }
 
 .recorder-stop:hover {
@@ -46,11 +46,11 @@
 }
 
 .recorder-status {
-  padding: 0.5em;
-  margin-bottom: 1em;
-  background-color: #fff;
-  border-radius: 4px;
   min-height: 2em;
+  margin-bottom: 1em;
+  padding: 0.5em;
+  border-radius: 4px;
+  background-color: #fff;
 }
 
 .status-message {
@@ -69,8 +69,8 @@
 .current-pronunciation {
   margin-top: 1em;
   padding: 1em;
-  background-color: #fff;
   border-radius: 4px;
+  background-color: #fff;
 }
 
 /* Player styles */
@@ -81,22 +81,22 @@
 }
 
 .pronunciation-play-button {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 40px;
   height: 40px;
+  cursor: pointer;
+  transition: all 0.2s;
   border: 2px solid #0073aa;
   border-radius: 50%;
   background-color: #fff;
-  cursor: pointer;
-  transition: all 0.2s;
-  position: relative;
 }
 
 .pronunciation-play-button:hover {
-  background-color: #0073aa;
   transform: scale(1.05);
+  background-color: #0073aa;
 }
 
 .pronunciation-play-button:hover::before {
@@ -105,24 +105,24 @@
 
 /* Speaker/play icon using CSS */
 .pronunciation-play-button::before {
-  content: '';
+  content: "";
   display: block;
   width: 0;
   height: 0;
-  border-style: solid;
-  border-width: 8px 0 8px 12px;
-  border-color: transparent transparent transparent #0073aa;
   margin-left: 3px;
   transition: border-left-color 0.2s;
+  border-width: 8px 0 8px 12px;
+  border-style: solid;
+  border-color: transparent transparent transparent #0073aa;
 }
 
 .pronunciation-play-button.playing::before {
-  border-style: solid;
-  border-width: 0 5px;
-  border-color: #0073aa;
   width: 3px;
   height: 16px;
   margin-left: 0;
+  border-width: 0 5px;
+  border-style: solid;
+  border-color: #0073aa;
 }
 
 .pronunciation-play-button.playing:hover::before {
@@ -131,8 +131,8 @@
 
 .pronunciation-play-button:disabled,
 .pronunciation-play-button.error {
-  opacity: 0.5;
   cursor: not-allowed;
+  opacity: 0.5;
   border-color: #ccc;
 }
 
@@ -142,8 +142,8 @@
 }
 
 .pronunciation-description {
-  font-size: 0.9em;
   color: #666;
+  font-size: 0.9em;
   font-style: italic;
 }
 
