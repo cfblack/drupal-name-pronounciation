@@ -19,8 +19,8 @@
 }
 
 .recorder-button {
-  cursor: pointer;
   padding: 0.5em 1em;
+  cursor: pointer;
   transition: background-color 0.2s;
   border: none;
   border-radius: 4px;
@@ -105,8 +105,8 @@
 
 /* Speaker/play icon using CSS */
 .pronunciation-play-button::before {
-  content: "";
   display: block;
+  content: "";
   width: 0;
   height: 0;
   margin-left: 3px;
