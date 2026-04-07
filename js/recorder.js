@@ -19,8 +19,7 @@
 
         const recordButton = recorderElement.querySelector('.recorder-record');
         const stopButton = recorderElement.querySelector('.recorder-stop');
-        const statusElement =
-          recorderElement.querySelector('.status-message');
+        const statusElement = recorderElement.querySelector('.status-message');
         const previewContainer =
           recorderElement.querySelector('.recorder-preview');
         const audioDataField = recorderElement
