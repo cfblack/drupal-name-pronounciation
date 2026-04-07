@@ -4,11 +4,11 @@
  */
 
 (function (Drupal) {
-  'use strict';
-
   Drupal.behaviors.namePronunciationRecorder = {
-    attach: function (context, settings) {
-      const recorders = context.querySelectorAll('.name-pronunciation-recorder');
+    attach(context, settings) {
+      const recorders = context.querySelectorAll(
+        '.name-pronunciation-recorder',
+      );
 
       recorders.forEach(function (recorderElement) {
         // Skip if already initialized.
@@ -19,9 +19,13 @@
 
         const recordButton = recorderElement.querySelector('.recorder-record');
         const stopButton = recorderElement.querySelector('.recorder-stop');
-        const statusElement = recorderElement.querySelector('.status-message');
-        const previewContainer = recorderElement.querySelector('.recorder-preview');
-        const audioDataField = recorderElement.closest('.field--widget-name-pronunciation-recorder').querySelector('.audio-data-field');
+        const statusElement =
+          recorderElement.querySelector('.status-message');
+        const previewContainer =
+          recorderElement.querySelector('.recorder-preview');
+        const audioDataField = recorderElement
+          .closest('.field--widget-name-pronunciation-recorder')
+          .querySelector('.audio-data-field');
 
         let mediaRecorder;
         let audioChunks = [];
@@ -41,22 +45,24 @@
               'audio/webm;codecs=opus',
               'audio/ogg;codecs=opus',
               'audio/mp4',
-              'audio/mpeg'
+              'audio/mpeg',
             ];
 
             let selectedMimeType = '';
-            for (const mimeType of mimeTypes) {
-              if (MediaRecorder.isTypeSupported(mimeType)) {
-                selectedMimeType = mimeType;
-                break;
-              }
+            const supportedType = mimeTypes.find(function (type) {
+              return MediaRecorder.isTypeSupported(type);
+            });
+            if (supportedType) {
+              selectedMimeType = supportedType;
             }
 
             if (!selectedMimeType) {
               throw new Error('No supported audio MIME type found');
             }
 
-            mediaRecorder = new MediaRecorder(stream, { mimeType: selectedMimeType });
+            mediaRecorder = new MediaRecorder(stream, {
+              mimeType: selectedMimeType,
+            });
             audioChunks = [];
 
             mediaRecorder.addEventListener('dataavailable', function (event) {
@@ -64,7 +70,9 @@
             });
 
             mediaRecorder.addEventListener('stop', function () {
-              const audioBlob = new Blob(audioChunks, { type: selectedMimeType });
+              const audioBlob = new Blob(audioChunks, {
+                type: selectedMimeType,
+              });
 
               // Convert to base64 for form submission.
               const reader = new FileReader();
@@ -75,16 +83,19 @@
 
               // Create preview audio element.
               const audioUrl = URL.createObjectURL(audioBlob);
-              previewContainer.innerHTML = '<audio controls src="' + audioUrl + '"></audio>';
+              previewContainer.innerHTML = `<audio controls src="${audioUrl}"></audio>`;
               previewContainer.classList.remove('hidden');
 
               // Stop all tracks.
               if (stream) {
-                stream.getTracks().forEach(track => track.stop());
+                stream.getTracks().forEach(function (track) {
+                  track.stop();
+                });
               }
 
               // Update UI.
-              statusElement.textContent = 'Recording saved. Remember to save the form.';
+              statusElement.textContent =
+                'Recording saved. Remember to save the form.';
               recordButton.classList.remove('hidden');
               stopButton.classList.add('hidden');
             });
@@ -95,10 +106,10 @@
             statusElement.textContent = 'Recording...';
             recordButton.classList.add('hidden');
             stopButton.classList.remove('hidden');
-
           } catch (error) {
             console.error('Error accessing microphone:', error);
-            statusElement.textContent = 'Error: Could not access microphone. Please check your browser permissions.';
+            statusElement.textContent =
+              'Error: Could not access microphone. Please check your browser permissions.';
           }
         });
 
@@ -111,7 +122,6 @@
           }
         });
       });
-    }
+    },
   };
-
 })(Drupal);
